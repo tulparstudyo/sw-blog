@@ -1,0 +1,22 @@
+{
+	"projectName": "sw-blog",
+	"licenseText": "proprietary",
+	"pkgs": [{
+		"name": "sw-blog CSS",
+		"file": "sw-blog.css",
+		"isDebug": true,
+		"fileIncludes": [{
+			"text": "custom.css",
+			"path": "themes/"
+		}]
+	}, {
+		"name": "sw-blog JS",
+		"file": "sw-blog.js",
+		"isDebug": true,
+		"fileIncludes": [{
+			"text": "custom.js",
+			"path": "themes/"
+		}]
+	}],
+	"resources" : []
+}
