@@ -1,3 +1,30 @@
 /*
  * Custom sw-blog CSS
  */
+ .aimeos .main-sidebar .swblog .icon:before {
+  content: "\f0f6";
+}
+.swpost-type a{
+    font-weight: bold;
+}
+.swpost-type.banner a{
+    color:#ef6e72!important;
+}
+.swpost-type.about a{
+    color:#8dd050!important;
+}
+.swpost-type.contact a{
+    color:#f3b372!important;
+}
+.swpost-type.feature a{
+    color:#7294f3!important;
+}
+.swpost-type.portfolio a{
+    color:#ff83f6!important;
+}
+.swpost-type.service a{
+    color:#2BE9EE!important;
+}
+.swpost-type.testimonial a{
+    color:#ECD642!important;
+}

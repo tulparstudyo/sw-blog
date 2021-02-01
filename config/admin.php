@@ -2,21 +2,29 @@
 
 return [
 	'jqadm' => [
-        'post' => [
+        'swpost' => [
             'standard' => [
                 'subparts' => [
                     'media' => 'media',
                     'text' => 'text',
                 ],
-            ]
+            ],
+            'domains' => [
+                'media' => 'media',
+                'text' => 'text',
+            ],
         ],
         'navbar' => [
-            'post'=>['post']
+            'swblog'=>['swpost', 'type/swpost']
          ],
         'resource' =>[
-            'post' => [
+            'swpost' => [
                 'groups' => ['admin', 'editor', 'super'],
                 'key' => 'SWP',
+            ],
+            'swblog' => [
+                'groups' => ['admin', 'editor', 'super'],
+                'key' => 'SWB',
             ],
         ],
     ],
