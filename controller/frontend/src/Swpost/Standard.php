@@ -22,7 +22,8 @@ class Standard
 	implements Iface, \Aimeos\Controller\Frontend\Common\Iface
 {
 	private $conditions = [];
-	private $domains = [];
+	private $domain = 'swpost';
+	private $domains = ['swpost'];
 	private $sort = [];
 	private $filter;
 	private $manager;
@@ -39,7 +40,6 @@ class Standard
 
 		$this->manager = \Aimeos\MShop::create( $context, 'index' );
 		$this->filter = $this->manager->createSearch( true );
-		$this->conditions[] = $this->filter->compare( '!=', 'index.catalog.id', null );
 		$this->conditions[] = $this->filter->getConditions();
 	}
 
@@ -56,7 +56,7 @@ class Standard
 	/**
 	 * Returns the aggregated count of swposts for the given key.
 	 *
-	 * @param string $key Search key to aggregate for, e.g. "index.attribute.id"
+	 * @param string $key Search key to aggregate for, e.g. "index.swpost.id"
 	 * @param string|null $value Search key for aggregating the value column
 	 * @param string|null $type Type of the aggregation, empty string for count or "sum" or "avg" (average)
 	 * @return \Aimeos\Map Associative list of key values as key and the swpost count for this key as value
@@ -70,9 +70,9 @@ class Standard
 
 
 	/**
-	 * Adds attribute IDs for filtering where swposts must reference all IDs
+	 * Adds swpost IDs for filtering where swposts must reference all IDs
 	 *
-	 * @param array|string $attrIds Attribute ID or list of IDs
+	 * @param array|string $attrIds Swpost ID or list of IDs
 	 * @return \Aimeos\Controller\Frontend\Swpost\Iface Swpost controller for fluent interface
 	 * @since 2019.04
 	 */
@@ -80,7 +80,7 @@ class Standard
 	{
 		if( !empty( $attrIds ) && ( $ids = array_unique( $this->validateIds( (array) $attrIds ) ) ) !== [] )
 		{
-			$func = $this->filter->createFunction( 'index.attribute:allof', [$ids] );
+			$func = $this->filter->createFunction( 'index.swpost:allof', [$ids] );
 			$this->conditions[] = $this->filter->compare( '!=', $func, null );
 		}
 
@@ -178,6 +178,7 @@ class Standard
 	 */
 	public function get( string $id ) : \Aimeos\MShop\Swpost\Item\Iface
 	{
+        echo get_class($this->manager);
 		return $this->manager->getItem( $id, $this->domains, true );
 	}
 
@@ -185,7 +186,7 @@ class Standard
 	/**
 	 * Adds a filter to return only items containing a reference to the given ID
 	 *
-	 * @param string $domain Domain name of the referenced item, e.g. "attribute"
+	 * @param string $domain Domain name of the referenced item, e.g. "swpost"
 	 * @param string|null $type Type code of the reference, e.g. "variant" or null for all types
 	 * @param string|null $refId ID of the referenced item of the given domain or null for all references
 	 * @return \Aimeos\Controller\Frontend\Swpost\Iface Swpost controller for fluent interface
@@ -204,11 +205,11 @@ class Standard
 
 
 	/**
-	 * Adds attribute IDs for filtering where swposts must reference at least one ID
+	 * Adds swpost IDs for filtering where swposts must reference at least one ID
 	 *
 	 * If an array of ID lists is given, each ID list is added separately as condition.
 	 *
-	 * @param array|string $attrIds Attribute ID, list of IDs or array of lists with IDs
+	 * @param array|string $attrIds Swpost ID, list of IDs or array of lists with IDs
 	 * @return \Aimeos\Controller\Frontend\Swpost\Iface Swpost controller for fluent interface
 	 * @since 2019.04
 	 */
@@ -220,7 +221,7 @@ class Standard
 		{
 			if( is_array( $entry ) && ( $ids = array_unique( $this->validateIds( $entry ) ) ) !== [] )
 			{
-				$func = $this->filter->createFunction( 'index.attribute:oneof', [$ids] );
+				$func = $this->filter->createFunction( 'index.swpost:oneof', [$ids] );
 				$this->conditions[] = $this->filter->compare( '!=', $func, null );
 				unset( $attrIds[$key] );
 			}
@@ -228,7 +229,7 @@ class Standard
 
 		if( ( $ids = array_unique( $this->validateIds( $attrIds ) ) ) !== [] )
 		{
-			$func = $this->filter->createFunction( 'index.attribute:oneof', [$ids] );
+			$func = $this->filter->createFunction( 'index.swpost:oneof', [$ids] );
 			$this->conditions[] = $this->filter->compare( '!=', $func, null );
 		}
 
@@ -288,6 +289,7 @@ class Standard
 	public function swpost( $prodIds ) : Iface
 	{
 		if( !empty( $prodIds ) && ( $ids = array_unique( $this->validateIds( (array) $prodIds ) ) ) !== [] ) {
+			$this->conditions[] = $this->filter->compare( '==', 'swpost.id', $ids );
 			$this->conditions[] = $this->filter->compare( '==', 'swpost.id', $ids );
 		}
 

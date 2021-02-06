@@ -23,6 +23,14 @@ $cfgSuggest = $this->config( 'admin/jqadm/swpost/item/config/suggest', ['css-cla
 
 $navlimit = $this->config( 'admin/jqadm/swpost/item/navbar-limit', 7 );
 
+$icons = $this->config( 'admin/jqadm/swpost/icons', [] );
+$item = $this->get( 'item' );
+if($item){
+    $icon = $item->getConfigValue('icon');
+} else {
+    $icon = '';
+}
+
 $params = $this->get( 'pageParams', [] );
 
 $navlist = array_values( $this->get( 'itemSubparts', [] ) );
@@ -304,6 +312,14 @@ $navlist = array_values( $this->get( 'itemSubparts', [] ) );
 								</tr>
 							</thead>
 							<tbody>
+<tr class="config-item"><td class="config-row-key"><input type="text" name="item[config][icon][key]" required="required"  class="form-control form-control ui-autocomplete-input is-valid" autocomplete="off" value="icon" readonly></td> <td class="config-row-value"><select name="item[config][icon][val]" class="form-control">
+<option value=""><?= $enc->attr( $this->translate( 'admin', 'Select a Icon' ) ); ?></option>    
+    <?php foreach($icons as $icon_key => $icon_name ){ ?>
+<option value="<?=$icon_key?>" <?php if($icon_key==$icon) echo 'selected';?>><?= $enc->attr( $this->translate( 'admin', $icon_name ) ); ?></option>    
+    <?php } ?>
+    </select></td> <td class="actions"><div  title="Delete this entry" class="btn act-delete fa"></div></td></tr>
+                                
+                                
 								<tr v-for="(entry, pos) in items" v-bind:key="pos" class="config-item">
 									<td class="config-row-key">
 										<input is="auto-complete" required class="form-control" v-bind:readonly="readonly" tabindex="1"

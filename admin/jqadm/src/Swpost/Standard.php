@@ -165,7 +165,18 @@ class Standard
 			$manager = \Aimeos\MShop::create( $this->getContext(), 'swpost' );
 
 			$view->item = $manager->getItem( $id, $this->getDomains() );
-			$view->itemData = $this->toArray( $view->item );
+			$itemData = $this->toArray( $view->item, true );
+            foreach($itemData as $key=>$items){
+                if($key == 'config'){
+                    foreach($items as $item_key=>$item){
+                        if($item['key']=='icon') unset($items[$item_key]);
+                    }
+                }
+                
+                $itemData[$key] = $items;
+            }
+
+			$view->itemData = $itemData;
 			$view->itemBody = parent::get();
 		}
 		catch( \Exception $e )
