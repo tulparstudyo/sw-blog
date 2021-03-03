@@ -165,15 +165,12 @@ class Standard
 			$manager = \Aimeos\MShop::create( $this->getContext(), 'swpost' );
 
 			$view->item = $manager->getItem( $id, $this->getDomains() );
-			$itemData = $this->toArray( $view->item, true );
-            foreach($itemData as $key=>$items){
-                if($key == 'config'){
-                    foreach($items as $item_key=>$item){
-                        if($item['key']=='icon') unset($items[$item_key]);
-                    }
+            $itemData = $this->toArray( $view->item );
+            unset($itemData['swpost.config']['icon']);
+            foreach($itemData['config'] as $config_key => $config ){
+                if($config['key']=='icon'){
+                    unset($itemData['config'][$config_key]);
                 }
-                
-                $itemData[$key] = $items;
             }
 
 			$view->itemData = $itemData;

@@ -37,8 +37,7 @@ class Standard
 	public function __construct( \Aimeos\MShop\Context\Item\Iface $context )
 	{
 		parent::__construct( $context );
-
-		$this->manager = \Aimeos\MShop::create( $context, 'index' );
+		$this->manager = \Aimeos\MShop::create( $context, 'swpost' );
 		$this->filter = $this->manager->createSearch( true );
 		$this->conditions[] = $this->filter->getConditions();
 	}
@@ -178,7 +177,6 @@ class Standard
 	 */
 	public function get( string $id ) : \Aimeos\MShop\Swpost\Item\Iface
 	{
-        echo get_class($this->manager);
 		return $this->manager->getItem( $id, $this->domains, true );
 	}
 

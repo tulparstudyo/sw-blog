@@ -25,42 +25,6 @@ class Standard
 	implements \Aimeos\Client\JsonApi\Iface
 {
 	/**
-	 * Deletes the resource or the resource list
-	 *
-	 * @param \Psr\Http\Message\ServerRequestInterface $request Request object
-	 * @param \Psr\Http\Message\ResponseInterface $response Response object
-	 * @return \Psr\Http\Message\ResponseInterface Modified response object
-	 */
-	public function delete( ServerRequestInterface $request, ResponseInterface $response ) : \Psr\Http\Message\ResponseInterface
-	{
-		$view = $this->getView();
-
-		try
-		{
-			\Aimeos\Controller\Frontend::create( $this->getContext(), 'swpost' )->uses( [] )->delete();
-			$status = 200;
-		}
-		catch( \Aimeos\Controller\Frontend\Swpost\Exception $e )
-		{
-			$status = 403;
-			$view->errors = $this->getErrorDetails( $e, 'controller/frontend' );
-		}
-		catch( \Aimeos\MShop\Exception $e )
-		{
-			$status = 404;
-			$view->errors = $this->getErrorDetails( $e, 'mshop' );
-		}
-		catch( \Exception $e )
-		{
-			$status = $e->getCode() >= 100 && $e->getCode() < 600 ? $e->getCode() : 500;
-			$view->errors = $this->getErrorDetails( $e );
-		}
-
-		return $this->render( $response, $view, $status );
-	}
-
-
-	/**
 	 * Returns the resource or the resource list
 	 *
 	 * @param \Psr\Http\Message\ServerRequestInterface $request Request object
@@ -69,108 +33,31 @@ class Standard
 	 */
 	public function get( ServerRequestInterface $request, ResponseInterface $response ) : \Psr\Http\Message\ResponseInterface
 	{
-        var_dump($this->getContext());
-		$view = $this->getView();
-die();
-		try
-		{
-			$ref = ( $inc = $view->param( 'include' ) ) ? explode( ',', $inc ) : [];
-			$cntl = \Aimeos\Controller\Frontend::create( $this->getContext(), 'swpost' );
-			$view->item = $cntl->uses( $ref )->get(22);
-			$status = 200;
-		}
-		catch( \Aimeos\Controller\Frontend\Swpost\Exception $e )
-		{
-			$status = 403;
-			$view->errors = $this->getErrorDetails( $e, 'controller/frontend' );
-		}
-		catch( \Aimeos\MShop\Exception $e )
-		{
-			$status = 404;
-			$view->errors = $this->getErrorDetails( $e, 'mshop' );
-		}
-		catch( \Exception $e )
-		{
-			$status = $e->getCode() >= 100 && $e->getCode() < 600 ? $e->getCode() : 500;
-			$view->errors = $this->getErrorDetails( $e );
-		}
-
-		return $this->render( $response, $view, $status );
-	}
-
-
-	/**
-	 * Updates the resource or the resource list partitially
-	 *
-	 * @param \Psr\Http\Message\ServerRequestInterface $request Request object
-	 * @param \Psr\Http\Message\ResponseInterface $response Response object
-	 * @return \Psr\Http\Message\ResponseInterface Modified response object
-	 */
-	public function patch( ServerRequestInterface $request, ResponseInterface $response ) : \Psr\Http\Message\ResponseInterface
-	{
 		$view = $this->getView();
 
 		try
 		{
-			$body = (string) $request->getBody();
-			$ref = ( $inc = $view->param( 'include' ) ) ? explode( ',', $inc ) : [];
+			$ref = $view->param( 'include', ['media', 'price', 'text'] );
 
-			if( ( $payload = json_decode( $body ) ) === null || !isset( $payload->data->attributes ) ) {
-				throw new \Aimeos\Client\JsonApi\Exception( sprintf( 'Invalid JSON in body' ), 400 );
+			if( is_string( $ref ) ) {
+				$ref = explode( ',', $ref );
 			}
 
 			$cntl = \Aimeos\Controller\Frontend::create( $this->getContext(), 'swpost' )->uses( $ref );
-			$view->item = $cntl->add( (array) $payload->data->attributes )->store()->get();
-			$status = 200;
-		}
-		catch( \Aimeos\Controller\Frontend\Swpost\Exception $e )
-		{
-			$status = 403;
-			$view->errors = $this->getErrorDetails( $e, 'controller/frontend' );
-		}
-		catch( \Aimeos\MShop\Exception $e )
-		{
-			$status = 404;
-			$view->errors = $this->getErrorDetails( $e, 'mshop' );
-		}
-		catch( \Exception $e )
-		{
-			$status = $e->getCode() >= 100 && $e->getCode() < 600 ? $e->getCode() : 500;
-			$view->errors = $this->getErrorDetails( $e );
-		}
 
-		return $this->render( $response, $view, $status );
-	}
+			if( ( $id = $view->param( 'id' ) ) != '' )
+			{
+				$view->items = $cntl->get($id);
+				$view->total =  1 ;
 
-
-	/**
-	 * Creates or updates the resource or the resource list
-	 *
-	 * @param \Psr\Http\Message\ServerRequestInterface $request Request object
-	 * @param \Psr\Http\Message\ResponseInterface $response Response object
-	 * @return \Psr\Http\Message\ResponseInterface Modified response object
-	 */
-	public function post( ServerRequestInterface $request, ResponseInterface $response ) : \Psr\Http\Message\ResponseInterface
-	{
-		$view = $this->getView();
-
-		try
-		{
-			$body = (string) $request->getBody();
-
-			if( ( $payload = json_decode( $body ) ) === null || !isset( $payload->data->attributes ) ) {
-				throw new \Aimeos\Client\JsonApi\Exception( sprintf( 'Invalid JSON in body' ), 400 );
+			}
+			else
+			{
+				$view->items = map();
+				$view->total = count( $view->items );
 			}
 
-			$cntl = \Aimeos\Controller\Frontend::create( $this->getContext(), 'swpost' )->uses( [] );
-			$view->item = $cntl->add( (array) $payload->data->attributes )->store()->get();
-			$view->nodata = true; // only expose swpost ID to attackers
-			$status = 201;
-		}
-		catch( \Aimeos\Controller\Frontend\Swpost\Exception $e )
-		{
-			$status = 403;
-			$view->errors = $this->getErrorDetails( $e, 'controller/frontend' );
+			$status = 200;
 		}
 		catch( \Aimeos\MShop\Exception $e )
 		{
@@ -183,7 +70,16 @@ die();
 			$view->errors = $this->getErrorDetails( $e );
 		}
 
-		return $this->render( $response, $view, $status );
+		$tplconf = 'client/jsonapi/swpost/standard/template';
+		$default = 'swpost/standard';
+
+		$body = $view->render( $view->config( $tplconf, $default ) );
+
+		return $response->withHeader( 'Allow', 'GET,OPTIONS' )
+			->withHeader( 'Cache-Control', 'max-age=300' )
+			->withHeader( 'Content-Type', 'application/vnd.api+json' )
+			->withBody( $view->response()->createStreamFromString( $body ) )
+			->withStatus( $status );
 	}
 
 
@@ -198,106 +94,10 @@ die();
 	{
 		$view = $this->getView();
 
-		$view->attributes = [
-			'swpost.salutation' => [
-				'label' => 'Swpost salutation, i.e. "comany" ,"mr", "mrs", "miss" or ""',
+		$view->filter = [
+			'cs_type' => [
+				'label' => 'Type of the swpost items that should be returned ("delivery" or "payment")',
 				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.company' => [
-				'label' => 'Company name',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.vatid' => [
-				'label' => 'VAT ID of the company',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.title' => [
-				'label' => 'Title of the swpost',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.firstname' => [
-				'label' => 'First name of the swpost',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.lastname' => [
-				'label' => 'Last name of the swpost or full name',
-				'type' => 'string', 'default' => '', 'required' => true,
-			],
-			'swpost.address1' => [
-				'label' => 'First address part like street',
-				'type' => 'string', 'default' => '', 'required' => true,
-			],
-			'swpost.address2' => [
-				'label' => 'Second address part like house number',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.address3' => [
-				'label' => 'Third address part like flat number',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.postal' => [
-				'label' => 'Zip code of the city',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.city' => [
-				'label' => 'Name of the town/city',
-				'type' => 'string', 'default' => '', 'required' => true,
-			],
-			'swpost.state' => [
-				'label' => 'Two letter code of the country state',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.countryid' => [
-				'label' => 'Two letter ISO country code',
-				'type' => 'string', 'default' => '', 'required' => true,
-			],
-			'swpost.languageid' => [
-				'label' => 'Two or five letter ISO language code, e.g. "de" or "de_CH"',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.telephone' => [
-				'label' => 'Telephone number consisting of option leading "+" and digits without spaces',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.telefax' => [
-				'label' => 'Faximile number consisting of option leading "+" and digits without spaces',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.email' => [
-				'label' => 'E-mail address',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.website' => [
-				'label' => 'Web site including "http://" or "https://"',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.longitude' => [
-				'label' => 'Longitude of the swpost location as float value',
-				'type' => 'float', 'default' => '', 'required' => false,
-			],
-			'swpost.latitude' => [
-				'label' => 'Latitude of the swpost location as float value',
-				'type' => 'float', 'default' => '', 'required' => false,
-			],
-			'swpost.label' => [
-				'label' => 'Label to identify the swpost, will be firstname, lastname and company if empty',
-				'type' => 'string', 'default' => '', 'required' => true,
-			],
-			'swpost.code' => [
-				'label' => 'Unique swpost identifier, will be the e-mail address if empty',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.password' => [
-				'label' => 'Password of the swpost, generated if emtpy',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.birthday' => [
-				'label' => 'ISO date in YYYY-MM-DD format of the birthday',
-				'type' => 'string', 'default' => '', 'required' => false,
-			],
-			'swpost.status' => [
-				'label' => 'Swpost account status, i.e. "0" for disabled, "1" for enabled and is enabled by default',
-				'type' => 'integer', 'default' => '1', 'required' => false,
 			],
 		];
 
@@ -306,52 +106,10 @@ die();
 
 		$body = $view->render( $view->config( $tplconf, $default ) );
 
-		return $response->withHeader( 'Allow', 'DELETE,GET,OPTIONS,PATCH,POST' )
+		return $response->withHeader( 'Allow', 'GET,OPTIONS' )
 			->withHeader( 'Cache-Control', 'max-age=300' )
 			->withHeader( 'Content-Type', 'application/vnd.api+json' )
 			->withBody( $view->response()->createStreamFromString( $body ) )
 			->withStatus( 200 );
-	}
-
-
-	/**
-	 * Returns the response object with the rendered header and body
-	 *
-	 * @param \Psr\Http\Message\ResponseInterface $response Response object
-	 * @param \Aimeos\MW\View\Iface $view View instance
-	 * @param integer $status HTTP status code
-	 * @return \Psr\Http\Message\ResponseInterface Modified response object
-	 */
-	protected function render( ResponseInterface $response, \Aimeos\MW\View\Iface $view, int $status ) : \Psr\Http\Message\ResponseInterface
-	{
-		/** client/jsonapi/swpost/standard/template
-		 * Relative path to the swpost JSON API template
-		 *
-		 * The template file contains the code and processing instructions
-		 * to generate the result shown in the JSON API body. The
-		 * configuration string is the path to the template file relative
-		 * to the templates directory (usually in client/jsonapi/templates).
-		 *
-		 * You can overwrite the template file configuration in extensions and
-		 * provide alternative templates. These alternative templates should be
-		 * named like the default one but with the string "standard" replaced by
-		 * an unique name. You may use the name of your project for this. If
-		 * you've implemented an alternative client class as well, "standard"
-		 * should be replaced by the name of the new class.
-		 *
-		 * @param string Relative path to the template creating the body for the JSON API
-		 * @since 2017.04
-		 * @category Developer
-		 */
-		$tplconf = 'client/jsonapi/swpost/standard/template';
-		$default = 'swpost/standard';
-
-		$body = $view->render( $view->config( $tplconf, $default ) );
-
-		return $response->withHeader( 'Allow', 'DELETE,GET,OPTIONS,PATCH,POST' )
-			->withHeader( 'Cache-Control', 'no-cache, private' )
-			->withHeader( 'Content-Type', 'application/vnd.api+json' )
-			->withBody( $view->response()->createStreamFromString( $body ) )
-			->withStatus( $status );
 	}
 }

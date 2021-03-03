@@ -25,7 +25,7 @@ class Factory
 	 * Creates a swpost client object.
 	 *
 	 * @param \Aimeos\MShop\Context\Item\Iface $context Shop context instance with necessary objects
-	 * @param string $path Name of the client separated by slashes, e.g "product"
+	 * @param string $path Name of the client separated by slashes, e.g "swpost"
 	 * @param string|null $name Client name (default: "Standard")
 	 * @return \Aimeos\Client\JsonApi\Iface JSON API client
 	 * @throws \Aimeos\Client\JsonApi\Exception If requested client implementation couldn't be found or initialisation fails

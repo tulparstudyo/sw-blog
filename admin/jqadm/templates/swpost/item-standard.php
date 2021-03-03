@@ -312,7 +312,7 @@ $navlist = array_values( $this->get( 'itemSubparts', [] ) );
 								</tr>
 							</thead>
 							<tbody>
-<tr class="config-item"><td class="config-row-key"><input type="text" name="item[config][icon][key]" required="required"  class="form-control form-control ui-autocomplete-input is-valid" autocomplete="off" value="icon" readonly></td> <td class="config-row-value"><select name="item[config][icon][val]" class="form-control">
+<tr class="config-item"><td class="config-row-key"><input type="text" name="item[config][0][key]" required="required"  class="form-control form-control ui-autocomplete-input is-valid" autocomplete="off" value="icon" readonly></td> <td class="config-row-value"><select name="item[config][0][val]" class="form-control">
 <option value=""><?= $enc->attr( $this->translate( 'admin', 'Select a Icon' ) ); ?></option>    
     <?php foreach($icons as $icon_key => $icon_name ){ ?>
 <option value="<?=$icon_key?>" <?php if($icon_key==$icon) echo 'selected';?>><?= $enc->attr( $this->translate( 'admin', $icon_name ) ); ?></option>    

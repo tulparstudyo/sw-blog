@@ -1,5 +1,4 @@
 <?php
-
 return [
 	'jqadm' => [
         'swpost' => [
@@ -143,7 +142,7 @@ return [
             ]
         ],
         'navbar' => [
-            'swblog'=>['swpost', 'type/swpost']
+            'swordbros'=>['swordbros/techie', 'swpost', 'type/swpost'] 
          ],
         'resource' =>[
             'swpost' => [

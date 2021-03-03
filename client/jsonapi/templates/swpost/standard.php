@@ -16,16 +16,6 @@ $action = $this->config( 'client/jsonapi/url/action', 'get' );
 $config = $this->config( 'client/jsonapi/url/config', [] );
 
 
-$total = $this->get( 'total', 0 );
-$offset = max( $this->param( 'page/offset', 0 ), 0 );
-$limit = max( $this->param( 'page/limit', 100 ), 1 );
-
-$first = ( $offset > 0 ? 0 : null );
-$prev = ( $offset - $limit >= 0 ? $offset - $limit : null );
-$next = ( $offset + $limit < $total ? $offset + $limit : null );
-$last = ( ( (int) ( $total / $limit ) ) * $limit > $offset ? ( (int) ( $total / $limit ) ) * $limit : null );
-
-
 $ref = array( 'resource', 'id', 'related', 'relatedid', 'filter', 'page', 'sort', 'include', 'fields' );
 $params = array_intersect_key( $this->param(), array_flip( $ref ) );
 
@@ -37,15 +27,27 @@ foreach( (array) $fields as $resource => $list ) {
 }
 
 
-$entryFcn = function( \Aimeos\MShop\Attribute\Item\Iface $item ) use ( $fields, $target, $cntl, $action, $config )
+$entryFcn = function( \Aimeos\MShop\Swpost\Item\Iface $item, array $feConfig ) use ( $fields, $target, $cntl, $action, $config )
 {
+	$metadata = [];
 	$id = $item->getId();
 	$type = $item->getResourceType();
-	$params = array( 'resource' => $type, 'id' => $id );
+
 	$attributes = $item->toArray();
+	unset( $attributes['service.config'] ); // don't expose private information
+
+	$params = array( 'resource' => $type, 'id' => $id );
+
 
 	if( isset( $fields[$type] ) ) {
 		$attributes = array_intersect_key( $attributes, $fields[$type] );
+	}
+
+	if( isset( $feConfig[$id] ) )
+	{
+		foreach( $feConfig[$id] as $code => $attr ) {
+			$metadata[$code] = $attr->toArray();
+		}
 	}
 
 	$entry = array(
@@ -54,20 +56,12 @@ $entryFcn = function( \Aimeos\MShop\Attribute\Item\Iface $item ) use ( $fields, 
 		'links' => array(
 			'self' => array(
 				'href' => $this->url( $target, $cntl, $action, $params, [], $config ),
-				'allow' => array( 'GET' ),
-			),
+				'allow' => ['GET'],
+			)
 		),
 		'attributes' => $attributes,
 	);
-
-	foreach( $item->getPropertyItems() as $propItem )
-	{
-		$entry['relationships']['attribute/property']['data'][] = [
-			'id' => $propItem->getId(),
-			'type' => 'attribute/property',
-		];
-	}
-
+/*
 	foreach( $item->getListItems() as $listItem )
 	{
 		if( ( $refItem = $listItem->getRefItem() ) !== null && $refItem->isAvailable() )
@@ -83,16 +77,14 @@ $entryFcn = function( \Aimeos\MShop\Attribute\Item\Iface $item ) use ( $fields, 
 			$data = array( 'id' => $refItem->getId(), 'type' => $type, 'attributes' => $attributes );
 			$entry['relationships'][$type]['data'][] = $data;
 		}
-	}
+	}*/
 
 	return $entry;
 };
-
-
 ?>
 {
 	"meta": {
-		"total": <?= $total; ?>,
+		"total": <?= $this->get( 'total', 0 ); ?>,
 		"prefix": <?= json_encode( $this->get( 'prefix' ) ); ?>,
 		"content-baseurl": "<?= $this->config( 'resource/fs/baseurl' ); ?>"
 		<?php if( $this->csrf()->name() != '' ) : ?>
@@ -101,49 +93,29 @@ $entryFcn = function( \Aimeos\MShop\Attribute\Item\Iface $item ) use ( $fields, 
 				"value": "<?= $this->csrf()->value(); ?>"
 			}
 		<?php endif; ?>
+
 	},
 	"links": {
-		<?php if( is_map( $this->get( 'items' ) ) ) : ?>
-			<?php if( $first !== null ) : ?>
-				"first": "<?php $params['page']['offset'] = $first; echo $this->url( $target, $cntl, $action, $params, [], $config ); ?>",
-			<?php endif; ?>
-			<?php if( $prev !== null ) : ?>
-				"prev": "<?php $params['page']['offset'] = $prev; echo $this->url( $target, $cntl, $action, $params, [], $config ); ?>",
-			<?php endif; ?>
-			<?php if( $next !== null ) : ?>
-				"next": "<?php $params['page']['offset'] = $next; echo $this->url( $target, $cntl, $action, $params, [], $config ); ?>",
-			<?php endif; ?>
-			<?php if( $last !== null ) : ?>
-				"last": "<?php $params['page']['offset'] = $last; echo $this->url( $target, $cntl, $action, $params, [], $config ); ?>",
-			<?php endif; ?>
-		<?php endif; ?>
-		"self": "<?php $params['page']['offset'] = $offset; echo $this->url( $target, $cntl, $action, $params, [], $config ); ?>"
+		"self": "<?= $this->url( $target, $cntl, $action, $params, [], $config ); ?>"
 	}
 	<?php if( isset( $this->errors ) ) : ?>
 		,"errors": <?= json_encode( $this->errors, $pretty ); ?>
-
 	<?php elseif( isset( $this->items ) ) : ?>
 		<?php
 			$data = [];
 			$items = $this->get( 'items', map() );
-			$included = $this->jincluded( $items, $fields );
-
+			$feConfig = $this->get( 'attributes', [] );
+			$included = $this->jincluded( $this->items, $fields );
 			if( is_map( $items ) )
 			{
 				foreach( $items as $item ) {
-					$data[] = $entryFcn( $item );
+					$data[] = $entryFcn( $item, $feConfig );
 				}
+			} else {
+				$data = $entryFcn( $items, $feConfig );
 			}
-			else
-			{
-				$data = $entryFcn( $items );
-			}
-		 ?>
-
+		?>
 		,"data": <?= json_encode( $data, $pretty ); ?>
-
 		,"included": <?= json_encode( $included, $pretty ); ?>
-
 	<?php endif; ?>
-
 }
